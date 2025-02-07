@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "984021095341",
+    "project_id": "myride-ab53d",
+    "storage_bucket": "myride-ab53d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:984021095341:android:9612c609fb8628718c0724",
+        "android_client_info": {
+          "package_name": "com.test.weareconnected"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmjDHSIciuTgKysAGbzqGyInw7cyXbyOE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
