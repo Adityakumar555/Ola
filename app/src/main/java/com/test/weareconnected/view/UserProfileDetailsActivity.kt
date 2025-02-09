@@ -1,5 +1,6 @@
 package com.test.weareconnected.view
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -64,6 +65,13 @@ class UserProfileDetailsActivity : AppCompatActivity() {
                     // Handle any errors that occurred during the query
                     // You can show a Toast message for error handling
                 }
+        }
+
+        binding.logoutBtn.setOnClickListener {
+            appSharedPreferences?.clearAllData()
+            val intent = Intent(this,LoginActivity::class.java)
+            startActivity(intent)
+            finishAffinity()
         }
 
         binding.updateProfile.setOnClickListener {

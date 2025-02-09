@@ -249,7 +249,8 @@ class MainActivity : AppCompatActivity() {
                         // Save the nearby driver data under the 'nearby_drivers' collection
                         db.collection("nearby_drivers")  // Assuming you store driver data in the "nearby_drivers" collection
                             .document(driverPhoneNumber)  // Use the driver's phone number as the document ID
-                            .set(driverData)  // Add the new driver data as a document under nearby_drivers
+                            .collection("allDrivers")
+                            .add(driverData)  // Add the new driver data as a document under nearby_drivers
                             .addOnSuccessListener {
                                 Toast.makeText(
                                     this,
