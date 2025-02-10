@@ -26,7 +26,7 @@ import java.util.UUID
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignUpBinding
-    private val db = FirebaseFirestore.getInstance()  // Firestore instance
+    private val db = FirebaseFirestore.getInstance()
     private val appSharedPreferences by lazy { AppSharedPreferences.getInstance(this) }
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val myHelper by lazy { MyHelper(this) }
@@ -34,24 +34,18 @@ class SignUpActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Inflate the layout using ViewBinding
         binding = ActivitySignUpBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         // Setup vehicle type spinner
-        val vehicleTypeSpinner = findViewById<Spinner>(R.id.vehicle_type_spinner)
-        val vehicleTypes = arrayOf("Car", "Auto", "Bike")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, vehicleTypes)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        vehicleTypeSpinner.adapter = adapter
+        setSpinnerForDriver()
 
         // Register GPS setting prompt launcher
         gpsLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                // If the user enables GPS, fetch the location
+
             } else {
                 // Inform the user if GPS is required
                 Toast.makeText(this, "GPS is required to proceed.", Toast.LENGTH_SHORT).show()
@@ -73,7 +67,6 @@ class SignUpActivity : AppCompatActivity() {
 
         // Set up the Sign Up Button Click Listener
         binding.registerButton.setOnClickListener {
-            // Get the inputs from the EditText fields
             val name = binding.yourName.text.toString()
             val number = binding.yourNumber.text.toString()
             val age = binding.yourAge.text.toString()
@@ -82,7 +75,6 @@ class SignUpActivity : AppCompatActivity() {
             val userTypeId = binding.userTypeGroup.checkedRadioButtonId
             val userType = if (userTypeId == binding.userRadioButton.id) "User" else "Driver"
 
-            // Validate the inputs
             if (name.isEmpty()) {
                 Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show()
             } else if (number.isEmpty() || number.length != 10) {
@@ -147,7 +139,7 @@ class SignUpActivity : AppCompatActivity() {
                                         }
 
                                 } else {
-                                    // Create a User object
+
                                     val userData = User(
                                         name = name,
                                         id = userId,
@@ -169,7 +161,7 @@ class SignUpActivity : AppCompatActivity() {
                                             appSharedPreferences?.saveUserName(name)
 
                                             // Navigate to the Main Activity
-                                            val intent = Intent(this, MainActivity::class.java)
+                                            val intent = Intent(this, UserActivity::class.java)
                                             startActivity(intent)
                                             finish()
                                         }
@@ -200,7 +192,14 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
-    // Handle location permission result
+    private fun setSpinnerForDriver() {
+        val vehicleTypeSpinner = findViewById<Spinner>(R.id.vehicle_type_spinner)
+        val vehicleTypes = arrayOf("Car", "Auto", "Bike")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, vehicleTypes)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        vehicleTypeSpinner.adapter = adapter
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -208,7 +207,7 @@ class SignUpActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 10 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            // Permission granted, fetch location
+
         } else {
             if (!shouldShowRequestPermissionRationale(permissions[0])) {
                 // If permission is denied permanently, show a dialog to guide the user to settings

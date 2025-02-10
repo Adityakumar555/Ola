@@ -28,9 +28,9 @@ class RideNotificationService : LifecycleService() {
     private fun fetchNearbyRides() {
         val currentUserPhoneNumber = appSharedPreferences?.getMobileNumber()
 
-        // Set up a real-time listener on the 'nearby_drivers' collection
+        // Set up a real-time listener on the 'nearby_drivers'
         db.collection("nearby_drivers")
-            .whereEqualTo("rideStatus", "pending")  // Optionally filter by ride status (if necessary)
+            .whereEqualTo("rideStatus", "pending")
             .addSnapshotListener { snapshot, exception ->
                 if (exception != null) {
                     Toast.makeText(this, "Error fetching nearby drivers: ${exception.message}", Toast.LENGTH_SHORT).show()
@@ -52,7 +52,7 @@ class RideNotificationService : LifecycleService() {
                     // If matching drivers were found, show the ride request notification to the driver
                     if (nearbyDrivers.isNotEmpty()) {
                         // Fetch the user data who requested the ride
-                        val user = snapshot.documents.firstOrNull()  // This can be adjusted based on how the user is stored
+                        val user = snapshot.documents.firstOrNull()
                         val rideRequestUserName = user?.getString("userName") ?: "Unknown Name"
                         val fromLocation = user?.getString("fromLocation") ?: "Unknown Location"
                         val toLocation = user?.getString("toLocation") ?: "Unknown Location"
@@ -65,8 +65,6 @@ class RideNotificationService : LifecycleService() {
                             fromLocation = fromLocation,
                             toLocation = toLocation
                         )
-                    } else {
-                        Toast.makeText(this, "No matching drivers found.", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -103,6 +101,7 @@ class RideNotificationService : LifecycleService() {
             .setStyle(bigTextStyle)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+
             .build()
 
         // Show notification
@@ -140,7 +139,4 @@ class RideNotificationService : LifecycleService() {
             }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
 }

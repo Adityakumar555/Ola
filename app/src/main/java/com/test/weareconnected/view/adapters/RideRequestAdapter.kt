@@ -8,7 +8,7 @@ import com.test.weareconnected.databinding.ItemRideRequestBinding
 import com.test.weareconnected.models.DriverRides
 
 class RideRequestAdapter(
-    private val rideRequests: List<DriverRides>,val driverRideClickListener: DriverRideClickListener
+    private val rideRequests: List<DriverRides>, private val driverRideClickListener: DriverRideClickListener
 ) : RecyclerView.Adapter<RideRequestAdapter.RideRequestViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RideRequestViewHolder {
@@ -18,30 +18,21 @@ class RideRequestAdapter(
 
     override fun onBindViewHolder(holder: RideRequestViewHolder, position: Int) {
         val rideRequest = rideRequests[position]
-        holder.bind(rideRequest)
+        holder.binding.userNameTextView.text = rideRequest.requestedRideUserName
+        holder.binding.userPhoneNumberTextView.text = rideRequest.requestedRideUserNumber
+        holder.binding.fromLocationTextView.text = rideRequest.userLocation
+        holder.binding.toLocationTextView.text = rideRequest.toLocation
+
+        holder.binding.acceptButton.setOnClickListener {
+        }
+
+        //  Cancel button click
+        holder.binding.cancelButton.setOnClickListener {
+            driverRideClickListener.onCancelClick(rideRequest.driverPhoneNumber,rideRequest.id)
+        }
     }
 
     override fun getItemCount(): Int = rideRequests.size
 
-    inner class RideRequestViewHolder(private val binding: ItemRideRequestBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(rideRequest: DriverRides) {
-            // Binding data from DriverRides object to the views
-            binding.userNameTextView.text = rideRequest.requestedRideUserName
-            binding.userPhoneNumberTextView.text = rideRequest.requestedRideUserNumber
-            binding.fromLocationTextView.text = rideRequest.userLocation
-            binding.toLocationTextView.text = rideRequest.toLocation
-
-            // Optionally, you can handle the buttons here
-            // Example: Accept button click
-            binding.acceptButton.setOnClickListener {
-                // Handle accept action (e.g., update Firestore or UI)
-                // You can pass the rideRequest to a callback or directly handle here
-            }
-
-            // Example: Cancel button click
-            binding.cancelButton.setOnClickListener {
-               driverRideClickListener.onCancelClick(rideRequest.driverPhoneNumber,rideRequest.id)
-            }
-        }
-    }
+    class RideRequestViewHolder(val binding: ItemRideRequestBinding) : RecyclerView.ViewHolder(binding.root) {}
 }
