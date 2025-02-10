@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -43,8 +45,16 @@
 
         <service
             android:name=".notification.RideNotificationService"
-            android:permission="android.permission.BLUETOOTH_ADMIN"
             android:exported="false" />
+
+        <receiver android:name=".utils.RideBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="RESTART_SERVICE" />
+            </intent-filter>
+        </receiver>
 
 
 

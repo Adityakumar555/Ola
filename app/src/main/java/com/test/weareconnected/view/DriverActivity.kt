@@ -62,8 +62,9 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
 
         if (currentUserPhoneNumber != null) {
             db.collection("nearby_drivers")
-                .document(currentUserPhoneNumber)
-                .collection("allDrivers")
+                /*.document(currentUserPhoneNumber)
+                .collection("allDrivers")*/
+                .whereEqualTo("number",currentUserPhoneNumber)
                 .whereEqualTo("rideStatus", "pending")
                 .addSnapshotListener { snapshot, exception ->
                     if (exception != null) {
@@ -110,23 +111,24 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
 
                     val dialog = dialogBuilder.setTitle("Ride Request")
                         .setMessage("User is requesting a ride from $fromLocation to $toLocation.\n\nDo you want to accept the ride?")
-                        .setPositiveButton("Accept") { _, _ ->
+                        .setPositiveButton("Accept") { dialogInterface, _ ->
                             handleRideAcceptance(driverPhoneNumber, rideRequestUserName, rideRequestUserNumber, fromLocation, toLocation)
                             removeRideRequest(driverPhoneNumber, rideRequestUserNumber, fromLocation, toLocation)
+                            dialogInterface.dismiss()
                         }
-                        .setNegativeButton("Cancel") { _, _ ->
+                        .setNegativeButton("Cancel") { dialogInterface, _ ->
                             handleRideRejection(driverPhoneNumber)
                             removeRideRequest(driverPhoneNumber, rideRequestUserNumber, fromLocation, toLocation)
+                            dialogInterface.dismiss()
                         }
                         .create()
 
                     dialog.show()
                 }
             }
-        } else {
-            Toast.makeText(this, "Only drivers can accept rides.", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     private fun handleRideRejection(driverId: String) {
         Toast.makeText(this, "Driver $driverId rejected the ride", Toast.LENGTH_SHORT).show()
@@ -160,8 +162,6 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
                         )
 
                         db.collection("ride_requests")
-                            .document(driverPhoneNumber)
-                            .collection("rides")
                             .document(id)
                             .set(rideRequestData)
                             .addOnSuccessListener {
@@ -187,8 +187,6 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
 
         if (currentUserPhoneNumber != null) {
             db.collection("ride_requests")
-                .document(currentUserPhoneNumber)
-                .collection("rides")
                 .addSnapshotListener { snapshot, exception ->
                     if (exception != null) {
                         Toast.makeText(this, "Error fetching ride requests: ${exception.message}", Toast.LENGTH_SHORT).show()
@@ -220,18 +218,16 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
                             .document(document.id)
                             .delete()
                             .addOnSuccessListener {
-                                Toast.makeText(this, "Removed ride request for ${document.getString("number")}", Toast.LENGTH_SHORT).show()
+                               // Toast.makeText(this, "Removed ride request for ${document.getString("number")}", Toast.LENGTH_SHORT).show()
                             }
                             .addOnFailureListener { e ->
-                                Toast.makeText(this, "Failed to remove ride request: ${e.message}", Toast.LENGTH_SHORT).show()
+                                //Toast.makeText(this, "Failed to remove ride request.", Toast.LENGTH_SHORT).show()
                             }
                     }
-                } else {
-                    Toast.makeText(this, "No ride requests found for the requested user.", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error fetching nearby drivers: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error fetching nearby drivers.", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -239,17 +235,18 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
         db.collection("drivers").document(driverPhoneNumber)
             .update("status", "on ride")
             .addOnSuccessListener {
-                Toast.makeText(this, "Driver status updated to 'on ride'.", Toast.LENGTH_SHORT).show()
+              //  Toast.makeText(this, "Driver status updated to 'on ride'.", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to update driver status: ${e.message}", Toast.LENGTH_SHORT).show()
+              //  Toast.makeText(this, "Failed to update driver status: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun removeRideRequest(driverPhoneNumber: String, rideRequestUserNumber: String, fromLocation: String, toLocation: String) {
         db.collection("nearby_drivers")
-            .document(driverPhoneNumber)
-            .collection("allDrivers")
+            /*.document(currentUserPhoneNumber)
+              .collection("allDrivers")*/
+            .whereEqualTo("number",driverPhoneNumber)
             .whereEqualTo("userPhoneNumber", rideRequestUserNumber)
             .whereEqualTo("fromLocation", fromLocation)
             .whereEqualTo("toLocation", toLocation)
@@ -258,23 +255,23 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
                 if (!snapshot.isEmpty) {
                     for (document in snapshot.documents) {
                         db.collection("nearby_drivers")
-                            .document(driverPhoneNumber)
-                            .collection("allDrivers")
+                            /*.document(driverPhoneNumber)
+                            .collection("allDrivers")*/
                             .document(document.id)
                             .delete()
                             .addOnSuccessListener {
-                                Toast.makeText(this, "Ride request removed successfully.", Toast.LENGTH_SHORT).show()
+                              //  Toast.makeText(this, "Ride request removed successfully.", Toast.LENGTH_SHORT).show()
                             }
                             .addOnFailureListener { e ->
-                                Toast.makeText(this, "Failed to remove ride request: ${e.message}", Toast.LENGTH_SHORT).show()
+                              //  Toast.makeText(this, "Failed to remove ride request.", Toast.LENGTH_SHORT).show()
                             }
                     }
                 } else {
-                    Toast.makeText(this, "No matching ride request found.", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this, "No matching ride request found.", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error fetching ride request: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error fetching ride request.", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -283,8 +280,6 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
     override fun onCancelClick(driverPhoneNumber: String, id: String) {
         appSharedPreferences?.getMobileNumber()?.let { currentUserPhoneNumber ->
             db.collection("ride_requests")
-                .document(currentUserPhoneNumber)
-                .collection("rides")
                 .document(id)
                 .delete()
                 .addOnSuccessListener {
@@ -303,10 +298,10 @@ class DriverActivity : AppCompatActivity(), DriverRideClickListener {
                 .document(driverPhoneNumber)
                 .update("status", "Active")
                 .addOnSuccessListener {
-                    Toast.makeText(this, "Driver status updated to 'Active'.", Toast.LENGTH_SHORT).show()
+                  //  Toast.makeText(this, "Driver status updated to 'Active'.", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this, "Failed to update driver status: ${e.message}", Toast.LENGTH_SHORT).show()
+                   // Toast.makeText(this, "Failed to update driver status: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         }
     }

@@ -1,11 +1,13 @@
 package com.test.weareconnected.view
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
 import com.test.weareconnected.databinding.ActivityLoginBinding
+import com.test.weareconnected.notification.RideNotificationService
 import com.test.weareconnected.utils.AppSharedPreferences
 
 class LoginActivity : AppCompatActivity() {
@@ -18,6 +20,13 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val serviceIntent = Intent(this, RideNotificationService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
 
         // Check if the user has already logged in
         if (appSharedPreferences?.isMainActivityVisited() == true) {

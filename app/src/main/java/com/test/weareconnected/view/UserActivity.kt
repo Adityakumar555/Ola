@@ -4,6 +4,7 @@ import android.content.Intent
 import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.RadioButton
 import android.widget.Toast
@@ -124,205 +125,223 @@ class UserActivity : AppCompatActivity() {
                         ).show()
 
                     }
+
                 }
             }
     }
 
+/*
+    private fun listenForRideStatusUpdate(requestedRideUserPhoneNumber: String) {
+        db.collection("ride_requests")
+            .document("9999999999")
+            .collection("rides")
+            .get()
+            .addOnSuccessListener { task ->
 
-    // Function to fetch nearby drivers
-    private fun fetchNearbyDrivers(fromLocation: String, toLocation: String) {
-        fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) { task ->
-            val location: Location? = task.result
-            if (location != null) {
-                val latitude = location.latitude
-                val longitude = location.longitude
+                val list = mutableListOf<String>()
+                for (document in task.documents) {
+                    list.add(document.data.toString())
+                }
+                Log.d("listenForRideStatusUpdate", list.toString())
 
-                // Get the selected vehicle type
-                val selectedVehicleType = getSelectedVehicleType()
+            }
+    }
+*/
 
-                if (selectedVehicleType != null) {
-                    // Query Firestore to get drivers within a 200-meter radius
-                    db.collection("drivers")
-                        .whereEqualTo("vehicleType", selectedVehicleType)
-                        .get()
-                        .addOnSuccessListener { result ->
-                            if (result.isEmpty) {
-                                Toast.makeText(
-                                    this,
-                                    "No nearby drivers found for this vehicle type.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                val nearbyDrivers = mutableListOf<DocumentSnapshot>()
-                                for (driver in result.documents) {
-                                    val driverLat = driver.getDouble("latitude")
-                                    val driverLon = driver.getDouble("longitude")
 
-                                    if (driverLat != null && driverLon != null) {
-                                        val distance = calculateDistance(
-                                            latitude,
-                                            longitude,
-                                            driverLat,
-                                            driverLon
-                                        )
-                                        if (distance <= 2000) { // 200 meters distance
-                                            nearbyDrivers.add(driver)
+        // Function to fetch nearby drivers
+        private fun fetchNearbyDrivers(fromLocation: String, toLocation: String) {
+            fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) { task ->
+                val location: Location? = task.result
+                if (location != null) {
+                    val latitude = location.latitude
+                    val longitude = location.longitude
 
-                                            // Save the nearby driver to Firestore
-                                            saveNearbyDriverToDriverPhoneNumber(
-                                                driver,
-                                                fromLocation,
-                                                toLocation
+                    // Get the selected vehicle type
+                    val selectedVehicleType = getSelectedVehicleType()
+
+                    if (selectedVehicleType != null) {
+                        // Query Firestore to get drivers within a 200-meter radius
+                        db.collection("drivers")
+                            .whereEqualTo("vehicleType", selectedVehicleType)
+                            .get()
+                            .addOnSuccessListener { result ->
+                                if (result.isEmpty) {
+                                    Toast.makeText(
+                                        this,
+                                        "No nearby drivers found for this vehicle type.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    val nearbyDrivers = mutableListOf<DocumentSnapshot>()
+                                    for (driver in result.documents) {
+                                        val driverLat = driver.getDouble("latitude")
+                                        val driverLon = driver.getDouble("longitude")
+
+                                        if (driverLat != null && driverLon != null) {
+                                            val distance = calculateDistance(
+                                                latitude,
+                                                longitude,
+                                                driverLat,
+                                                driverLon
                                             )
+                                            // 2 km distance
+                                            if (distance <= 2000) {
+                                                nearbyDrivers.add(driver)
+
+                                                // Save the nearby driver to Firestore
+                                                saveNearbyDriverToDriverPhoneNumber(
+                                                    driver,
+                                                    fromLocation,
+                                                    toLocation
+                                                )
+                                            }
                                         }
                                     }
-                                }
 
-                                if (nearbyDrivers.isNotEmpty()) {
-                                    Toast.makeText(
-                                        this,
-                                        "Driver fount please wait.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    if (nearbyDrivers.isNotEmpty()) {
+                                        Toast.makeText(
+                                            this,
+                                            "Driver fount please wait.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
 
-                                } else {
-                                    Toast.makeText(
-                                        this,
-                                        "No drivers found within 200 meters.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            this,
+                                            "No drivers found within 200 meters.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
                             }
-                        }
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Please select a vehicle type.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-    }
-
-    private fun saveNearbyDriverToDriverPhoneNumber(
-        driver: DocumentSnapshot,
-        fromLocation: String,
-        toLocation: String
-    ) {
-        val driverPhoneNumber = driver.getString("number")
-        val driverName = driver.getString("name")
-        val driverVehicleType = driver.getString("vehicleType")
-        val driverLatitude = driver.getDouble("latitude")
-        val driverLongitude = driver.getDouble("longitude")
-
-        val userPhoneNumber = appSharedPreferences?.getMobileNumber()
-        val userName = appSharedPreferences?.getUserName()
-
-        if (driverPhoneNumber != null && userPhoneNumber != null && userName != null) {
-            val driverData = hashMapOf(
-                "driverId" to driver.id,
-                "name" to driverName,
-                "vehicleType" to driverVehicleType,
-                "latitude" to driverLatitude,
-                "longitude" to driverLongitude,
-                "number" to driverPhoneNumber,
-                "rideStatus" to "pending",
-                "fromLocation" to fromLocation,
-                "toLocation" to toLocation,
-                "userPhoneNumber" to userPhoneNumber,
-                "userName" to userName
-            )
-
-            // Save the nearby driver data
-            db.collection("nearby_drivers")
-                .document(driverPhoneNumber)
-                .collection("allDrivers")
-                .add(driverData)
-                .addOnSuccessListener {
-                    Toast.makeText(
-                        this,
-                        "Nearby driver saved successfully!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(
-                        this,
-                        "Failed to save nearby driver: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-        } else {
-            Toast.makeText(
-                this,
-                "Driver phone number or user details are missing.",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
-
-
-    // Calculate distance using Haversine formula (in meters)
-    private fun calculateDistance(
-        lat1: Double,
-        lon1: Double,
-        lat2: Double,
-        lon2: Double
-    ): Float {
-        val earthRadius = 6371000 // meters
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLon = Math.toRadians(lon2 - lon1)
-        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        return (earthRadius * c).toFloat()
-    }
-
-
-    // Function to get the selected vehicle type from the RadioGroup
-    private fun getSelectedVehicleType(): String? {
-        val selectedId = binding.vehicleTypeGroup.checkedRadioButtonId
-        val selectedRadioButton = findViewById<RadioButton>(selectedId)
-
-        return when (selectedRadioButton?.id) {
-            R.id.bikeRadio -> "Bike"
-            R.id.autoRadio -> "Auto"
-            R.id.carRadio -> "Car"
-            else -> null
-        }
-    }
-
-
-    // Function to get current location
-    private fun getCurrentLocation() {
-        if (myHelper.isLocationEnable()) {
-            if (myHelper.checkLocationPermission()) {
-                // Permission is granted, fetch the location
-                fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) { task ->
-                    val location: Location? = task.result
-                    location?.let {
-                        val addressList =
-                            Geocoder(this, Locale.getDefault()).getFromLocation(
-                                it.latitude, it.longitude, 1
-                            )
-                        val address = addressList?.get(0)?.getAddressLine(0)
-                        binding.fromLocation.setText(address)
-
-                        // Save user address in shared preferences
-                        if (address != null) {
-                            appSharedPreferences?.saveUserAddress(address)
-                        }
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Please select a vehicle type.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
-            } else {
-                // Request permission if not granted
-                myHelper.requestLocationPermission(this)
             }
-        } else {
-            // If location services are disabled, request user to enable it
-            myHelper.onGPS(gpsLauncher)
+        }
+
+        private fun saveNearbyDriverToDriverPhoneNumber(
+            driver: DocumentSnapshot,
+            fromLocation: String,
+            toLocation: String
+        ) {
+            val driverPhoneNumber = driver.getString("number")
+            val driverName = driver.getString("name")
+            val driverVehicleType = driver.getString("vehicleType")
+            val driverLatitude = driver.getDouble("latitude")
+            val driverLongitude = driver.getDouble("longitude")
+
+            val userPhoneNumber = appSharedPreferences?.getMobileNumber()
+            val userName = appSharedPreferences?.getUserName()
+
+            if (driverPhoneNumber != null && userPhoneNumber != null && userName != null) {
+                val driverData = hashMapOf(
+                    "driverId" to driver.id,
+                    "name" to driverName,
+                    "vehicleType" to driverVehicleType,
+                    "latitude" to driverLatitude,
+                    "longitude" to driverLongitude,
+                    "number" to driverPhoneNumber,
+                    "rideStatus" to "pending",
+                    "fromLocation" to fromLocation,
+                    "toLocation" to toLocation,
+                    "userPhoneNumber" to userPhoneNumber,
+                    "userName" to userName
+                )
+
+                // Save the nearby driver data
+                db.collection("nearby_drivers")
+                    .add(driverData)
+                    .addOnSuccessListener {
+                        Toast.makeText(
+                            this,
+                            "Nearby driver saved successfully!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(
+                            this,
+                            "Failed to save nearby driver.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+            } else {
+                Toast.makeText(
+                    this,
+                    "Driver phone number or user details are missing.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+
+        // Calculate distance using Haversine formula (in meters)
+        private fun calculateDistance(
+            lat1: Double,
+            lon1: Double,
+            lat2: Double,
+            lon2: Double
+        ): Float {
+            val earthRadius = 6371000 // meters
+            val dLat = Math.toRadians(lat2 - lat1)
+            val dLon = Math.toRadians(lon2 - lon1)
+            val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+            val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+            return (earthRadius * c).toFloat()
+        }
+
+
+        // Function to get the selected vehicle type from the RadioGroup
+        private fun getSelectedVehicleType(): String? {
+            val selectedId = binding.vehicleTypeGroup.checkedRadioButtonId
+            val selectedRadioButton = findViewById<RadioButton>(selectedId)
+
+            return when (selectedRadioButton?.id) {
+                R.id.bikeRadio -> "Bike"
+                R.id.autoRadio -> "Auto"
+                R.id.carRadio -> "Car"
+                else -> null
+            }
+        }
+
+
+        // Function to get current location
+        private fun getCurrentLocation() {
+            if (myHelper.isLocationEnable()) {
+                if (myHelper.checkLocationPermission()) {
+                    // Permission is granted, fetch the location
+                    fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) { task ->
+                        val location: Location? = task.result
+                        location?.let {
+                            val addressList =
+                                Geocoder(this, Locale.getDefault()).getFromLocation(
+                                    it.latitude, it.longitude, 1
+                                )
+                            val address = addressList?.get(0)?.getAddressLine(0)
+                            binding.fromLocation.setText(address)
+
+                            // Save user address in shared preferences
+                            if (address != null) {
+                                appSharedPreferences?.saveUserAddress(address)
+                            }
+                        }
+                    }
+                } else {
+                    // Request permission if not granted
+                    myHelper.requestLocationPermission(this)
+                }
+            } else {
+                // If location services are disabled, request user to enable it
+                myHelper.onGPS(gpsLauncher)
+            }
         }
     }
-}
