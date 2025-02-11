@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.firebase.crashlytics)
 }
 
 android {
@@ -50,18 +51,21 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
     implementation(libs.androidx.lifecycle.service)
+    implementation(libs.firebase.crashlytics)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
     // Firebase BoM to manage versions of Firebase SDKs automatically
-    implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
+   // implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+   // implementation("com.google.firebase:firebase-analytics:18.0.0")
+
 
     // Firebase Cloud Messaging
 /*    implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")*/
 
-    implementation("com.google.firebase:firebase-firestore-ktx:24.3.0")
+   // implementation("com.google.firebase:firebase-firestore-ktx:24.3.0")
 
 
 

@@ -44,9 +44,6 @@ class UserActivity : AppCompatActivity() {
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
-        // Get the current location when activity starts
-        getCurrentLocation()
-
         // Register the GPS setting prompt launcher
         gpsLauncher =
             registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -58,6 +55,9 @@ class UserActivity : AppCompatActivity() {
                     Toast.makeText(this, "GPS is required to proceed.", Toast.LENGTH_SHORT).show()
                 }
             }
+
+        // Get the current location when activity starts
+        getCurrentLocation()
 
         val userType = appSharedPreferences?.getUserType()
 

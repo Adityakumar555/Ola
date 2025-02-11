@@ -95,8 +95,6 @@ class RideNotificationService : Service() {
             .setAutoCancel(true)
             .build()
 
-
-
         notificationManager.notify(10, notification)
     }
 

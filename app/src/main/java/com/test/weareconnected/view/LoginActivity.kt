@@ -22,11 +22,7 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val serviceIntent = Intent(this, RideNotificationService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
+        startForegroundService(serviceIntent)
 
         // Check if the user has already logged in
         if (appSharedPreferences?.isMainActivityVisited() == true) {
